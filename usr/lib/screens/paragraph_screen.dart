@@ -12,12 +12,12 @@ class _ParagraphScreenState extends State<ParagraphScreen> {
   final TextEditingController _inputController = TextEditingController();
   final MockNLPService _nlpService = MockNLPService();
   String _output = '';
-  String _selectedOption = 'Summarize';
+  String _selectedOption = 'Sentiment';
 
   final List<String> _options = [
-    'Summarize',
-    'Keyword Extraction',
-    'Word Count',
+    'Sentiment',
+    'Part of Speech',
+    'Correct Spelling',
   ];
 
   void _processParagraph() {
@@ -31,14 +31,14 @@ class _ParagraphScreenState extends State<ParagraphScreen> {
 
     String result = '';
     switch (_selectedOption) {
-      case 'Summarize':
-        result = _nlpService.summarizeParagraph(text);
+      case 'Sentiment':
+        result = _nlpService.analyzeParagraphSentiment(text);
         break;
-      case 'Keyword Extraction':
-        result = _nlpService.extractKeywords(text);
+      case 'Part of Speech':
+        result = _nlpService.classifyParagraphPOS(text);
         break;
-      case 'Word Count':
-        result = _nlpService.countWords(text);
+      case 'Correct Spelling':
+        result = _nlpService.correctParagraphSpelling(text);
         break;
     }
 

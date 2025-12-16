@@ -132,10 +132,15 @@ class MockNLPService {
       'dont': 'don\'t',
       'cant': 'can\'t',
       'im': 'I\'m',
+      'wrod': 'word',
+      'helo': 'hello',
+      'wrld': 'world',
+      'fluter': 'flutter',
     };
 
     for (var w in words) {
       String cleanWord = w.replaceAll(RegExp(r'[^\w\s]'), '').toLowerCase();
+      // Preserve punctuation for reconstruction if possible, but for simple mock:
       if (commonErrors.containsKey(cleanWord)) {
         corrections.add(commonErrors[cleanWord]!);
         foundError = true;
@@ -152,39 +157,82 @@ class MockNLPService {
 
   // --- Paragraph Operations ---
 
-  String summarizeParagraph(String text) {
-    // Mock summary: First sentence + "..."
-    List<String> sentences = text.split(RegExp(r'[.!?]'));
-    if (sentences.isNotEmpty) {
-      return "Summary: ${sentences.first.trim()}.";
+  String analyzeParagraphSentiment(String text) {
+    // Split paragraph into sentences based on punctuation (. ! ?)
+    List<String> sentences = text.split(RegExp(r'(?<=[.!?])\s+'));
+    StringBuffer buffer = StringBuffer();
+    
+    for (var s in sentences) {
+      if (s.trim().isEmpty) continue;
+      String sentiment = analyzeSentiment(s);
+      buffer.writeln('Sentence: "${s.trim()}"');
+      buffer.writeln('Sentiment: $sentiment');
+      buffer.writeln('---');
     }
-    return "Text too short to summarize.";
+    
+    if (buffer.isEmpty) return "No sentences detected.";
+    return buffer.toString();
   }
 
-  String extractKeywords(String text) {
-    // Mock keywords: words longer than 5 chars
-    List<String> words = text.split(RegExp(r'\s+'));
-    Set<String> keywords = {};
+  String classifyParagraphPOS(String text) {
+    List<String> sentences = text.split(RegExp(r'(?<=[.!?])\s+'));
+    StringBuffer buffer = StringBuffer();
+    
+    for (var s in sentences) {
+      if (s.trim().isEmpty) continue;
+      String classification = classifySentence(s);
+      buffer.writeln('Sentence: "${s.trim()}"');
+      buffer.writeln('Parts of Speech: $classification');
+      buffer.writeln('---');
+    }
+
+    if (buffer.isEmpty) return "No sentences detected.";
+    return buffer.toString();
+  }
+
+  String correctParagraphSpelling(String text) {
+    List<String> words = text.split(' ');
+    List<String> corrections = [];
+    bool foundError = false;
+
+    Map<String, String> commonErrors = {
+      'teh': 'the',
+      'dont': 'don\'t',
+      'cant': 'can\'t',
+      'im': 'I\'m',
+      'wrod': 'word',
+      'helo': 'hello',
+      'wrld': 'world',
+      'fluter': 'flutter',
+    };
+
     for (var w in words) {
-      String clean = w.replaceAll(RegExp(r'[^\w]'), '');
-      if (clean.length > 5) {
-        keywords.add(clean);
+      // Remove punctuation for checking but keep it for reconstruction
+      String cleanWord = w.replaceAll(RegExp(r'[^\w\s]'), '').toLowerCase();
+      
+      if (commonErrors.containsKey(cleanWord)) {
+        // Replace with corrected word, trying to preserve original punctuation if simple
+        // For this mock, we just replace the word entirely with the correction
+        corrections.add(commonErrors[cleanWord]!);
+        foundError = true;
+      } else {
+        corrections.add(w);
       }
     }
-    return "Keywords: ${keywords.join(', ')}";
+
+    if (foundError) {
+      return "Corrected Paragraph:\n${corrections.join(' ')}";
+    }
+    return "No spelling errors found.";
   }
 
-  String countWords(String text) {
-    int count = text.trim().split(RegExp(r'\s+')).length;
-    return "Word Count: $count words";
-  }
+  // Keep old ones just in case, or remove if unused. 
+  // The user replaced requirements so we focus on the new ones, but keeping helpers is fine.
 
   // --- Helpers ---
 
   bool _isNounOrPronoun(String word) {
     // Mock check
-    // In a real app, this would use a dictionary or NLP model
-    // For demo, we assume most things are nouns unless we know they are verbs/adj
     if (_isVerb(word)) return false;
     if (['happy', 'sad', 'fast', 'slow'].contains(word)) return false; // Adjectives
     return true; 
